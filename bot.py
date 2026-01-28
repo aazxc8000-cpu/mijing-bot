@@ -1,45 +1,88 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+import os
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
 
-BOT_TOKEN ="8229177958:AAF3GbL8zSQpVpwLsCrDRRFye4v6V9cszYk"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+PLATFORM_URL = "https://mijing.me/mijing.html"
+MAP_URL = "https://mijing.me/map/map.html"
+
+
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        ["🧭 進入覓境平台"],
+        ["📍 打開覓境地圖"],
+        ["🤝 店家合作洽詢"],
+        ["ℹ️ 關於覓境"]
+    ]
+
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard,
+        resize_keyboard=True
+    )
+
     await update.message.reply_text(
+        "🔥🔥🔥 雲端版本 0129 🔥🔥🔥\n\n"
         "歡迎來到【覓境 Mijing】官方入口\n\n"
-        "探索附近按摩・芳療・SPA 實體店\n"
-        "合作洽詢請使用 /contact"
+        "請使用下方按鈕操作 👇",
+        reply_markup=reply_markup
     )
 
-async def nearby(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("📍 附近店家功能即將上線")
 
-async def notice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("📢 最新公告將於此發布")
+# 按鈕互動
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
 
-async def channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👉 官方推薦頻道：https://t.me/你的頻道")
+    if text == "🧭 進入覓境平台":
+        await update.message.reply_text(
+            f"🧭【覓境 Mijing｜官方平台】\n\n"
+            f"👉 點擊前往：\n{PLATFORM_URL}"
+        )
 
-async def about(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "覓境 Mijing 是專注於按摩・芳療・SPA 的實體探索平台，\n"
-        "協助優質店家提升曝光，並為消費者提供可信任的選擇。"
-    )
+    elif text == "📍 打開覓境地圖":
+        await update.message.reply_text(
+            f"📍【覓境地圖】\n\n"
+            f"👉 立即開啟：\n{MAP_URL}"
+        )
 
-async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("合作洽詢請聯絡@mijing_official_bot")
+    elif text == "🤝 店家合作洽詢":
+        await update.message.reply_text(
+            "🤝【店家合作洽詢】\n\n"
+            "請聯絡官方窗口：\n"
+            "@mijing_official_bot"
+        )
+
+    elif text == "ℹ️ 關於覓境":
+        await update.message.reply_text(
+            "ℹ️【關於覓境】\n\n"
+            "覓境是一個專注於\n"
+            "按摩・芳療・SPA 實體服務的探索平台。"
+        )
+
+    else:
+        await update.message.reply_text("請使用下方按鈕 👇")
+
 
 def main():
+    if not BOT_TOKEN:
+        raise ValueError("❌ BOT_TOKEN 沒有設定")
+
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("nearby", nearby))
-    app.add_handler(CommandHandler("notice", notice))
-    app.add_handler(CommandHandler("channel", channel))
-    app.add_handler(CommandHandler("about", about))
-    app.add_handler(CommandHandler("contact", contact))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
     print("🤖 覓境 Bot 已啟動")
-    app.run_polling()
+    app.run_polling(drop_pending_updates=True)
+
 
 if __name__ == "__main__":
     main()
+
